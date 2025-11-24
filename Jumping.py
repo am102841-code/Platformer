@@ -367,7 +367,9 @@ def main():
                 if event.type == pygame.QUIT:
                     exit()
 
+        # Creator Page 
         elif game_state == 'creator': 
+          #mouseClicked = False 
           WINDOW.fill(CREATOR_COLOR)
           
           Titlefontobj = pygame.font.Font(None, 64)
@@ -382,7 +384,7 @@ def main():
           # loading computer img  
           img = pygame.image.load("computah.jpeg").convert_alpha() 
           img = pygame.transform.scale(img, (200, 200))
-          WINDOW.blit(img, (550, 100))
+          WINDOW.blit(img, (550 + 50, 100))
           
           para_text = "Hi, I am the creator of this platformer, Ankitha."
           font = pygame.font.Font(None, 32) 
@@ -398,6 +400,26 @@ def main():
           y = 25 + 100 + 50
           WINDOW.blit(para, (x, y))
           
+          para_text = "I have worked on this game for about 1.5 years."
+          font = pygame.font.Font(None, 32) 
+          para = font.render(para_text, True, TEXT_COLOR, None)
+          x = WINDOW.get_width()/ 2 - Title.get_width() / 2 + 80 - 75 
+          y = 25 + 100 + 50 + 50 
+          WINDOW.blit(para, (x, y))
+          
+          para_text = "Over time, I have made many additions, and some"
+          font = pygame.font.Font(None, 32) 
+          para = font.render(para_text, True, TEXT_COLOR, None)
+          x = WINDOW.get_width()/ 2 - Title.get_width() / 2 + 80 - 75 
+          y = 25 + 100 + 50 + 50 + 50 
+          WINDOW.blit(para, (x, y))
+          
+          para_text = "include gravity, collisions, classes, and a score counter."
+          font = pygame.font.Font(None, 32) 
+          para = font.render(para_text, True, TEXT_COLOR, None)
+          x = WINDOW.get_width()/ 2 - Title.get_width() / 2 + 80 - 75 
+          y = 25 + 100 + 50 + 200 - 50 
+          WINDOW.blit(para, (x, y))
         
           # Exit Button
           exit_button = button(600, 500 - 75, 100, 100, 'orange', 'exit', None)
@@ -410,6 +432,23 @@ def main():
           y = 500 - 75 + 50 - 25 + 15
 
           WINDOW.blit(ExitText, (x, y))
+          
+          mouseClicked = False
+
+          for event in pygame.event.get():
+              # if clicked 
+              if event.type == pygame.MOUSEBUTTONDOWN:
+                  mouseClicked = True
+              if event.type == pygame.QUIT:
+                  pygame.quit()
+                  sys.exit()
+          
+          mouse_x, mouse_y = pygame.mouse.get_pos()
+          
+          # Check EXIT button click
+          if exit_button.hitbox.collidepoint((mouse_x, mouse_y)) and mouseClicked:
+              game_state = 'gameMenu'
+
 
         elif game_state == 'gameplay':
             # for testing

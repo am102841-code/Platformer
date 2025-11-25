@@ -367,6 +367,21 @@ def main():
             test_button = button(0, 0, 100, 100, 'orange', 'hello', None)
             #test_button.render_button()
 
+            # Shop Button
+            sb_x = 600 - 6.7 
+            sb_y = 20 
+            sb = button(sb_x, sb_y, 200, 50, 'orange', 'shop', None)
+            sb.render_button()
+            sb_font = pygame.font.Font(None, 32)
+
+            # Shop Button text
+            sbText = sb_font.render("Shop", True, TEXT_COLOR, None)
+            x = sb_x + 50 + 8
+            y = sb_y + 20 - 2
+            
+            WINDOW.blit(sbText, (x, y))
+                        
+  
 
             # Start Button
             start_button = button(WINDOW.get_width()/ 2 - 50 - 100, WINDOW.get_height() / 2, 100, 100, 'orange', 'start', None)

@@ -64,6 +64,7 @@ class Player():
         self.player_color = (245, 0, 0)
         self.facing_left = True
         self.health = 10
+        self.max_health = 10
         # add collision, gravity, and other code to the player class
 
 
@@ -96,6 +97,10 @@ class spike():
                     player.x = player.x + 10
                 else:
                     player.x = player.x - 10
+                player.health -= 1
+
+                player.y = 450
+                player.x = 250
 
 
 class level_counter():
@@ -404,10 +409,12 @@ def main():
                 if atc_button.hitbox.collidepoint((mouse_x, mouse_y)) and mouseClicked == True:
                     game_state = 'creator'
                 if tb.hitbox.collidepoint((mouse_x, mouse_y)) and mouseClicked == True:
-                    game_state = 'tutorial'
+                    game_state = 'tutorial_level'
                 if event.type == pygame.QUIT:
                     exit()
 
+        elif game_state == 'tutorial_level': 
+            pass 
         elif game_state == 'tutorial':
             WINDOW.fill('lightblue')
             Titlefontobj = pygame.font.Font(None, 64)
@@ -881,6 +888,12 @@ def main():
             # if 640 <  player
 
             WINDOW.blit(background, (0, 0))
+            # health bar
+            pygame.draw.rect(WINDOW, (100, 100, 100), (50, 50, 200, 20))
+            health_ratio = max(player.health / player.max_health, 0)
+            pygame.draw.rect(WINDOW, (255, 0, 0), (50, 50, 200 * health_ratio, 20))
+            pygame.draw.rect(WINDOW, (0, 0, 0), (50, 50, 200, 20), 2)
+
             for rect in obstacle_list:
                 # pygame.draw.rect(WINDOW, OBSTACLE_COLOR, x)
                 platform_img = pygame.transform.scale(platform, (rect.width, rect.height))
@@ -900,7 +913,7 @@ def main():
                 portal_hitbox.topleft = (portal_x, portal_y)
                 #pygame.draw.rect(WINDOW, (0, 0, 0), ob5)
                 platform_img = pygame.transform.scale(platform_img, (ob5.width, ob5.height))
-                platform_img.fill((128, 128, 128)) 
+                platform_img.fill((128, 128, 128))
                 WINDOW.blit(platform_img, ob5.topleft)
             if level == 'secret':
                 portal_x = 680 + 250
@@ -929,9 +942,14 @@ def main():
             for coin in coin_list:
                 coin.render_coin()
 
+            if player.health <= 0:
+                game_state = 'gameMenu'
+                player.health = player.max_health
+                player.x = 100
+                player.y = 500
+
             # WINDOW.fill(PLAYER_COLOR, player)
             WINDOW.blit(player.player_now, (player.x, player.y))
-
             WINDOW.blit(portal, (portal_x, portal_y))
             WINDOW.blit(level_counter1.text(), (170, 100))
             WINDOW.blit(coin_counter.text(coin_list), (300, 100))

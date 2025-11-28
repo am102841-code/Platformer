@@ -66,6 +66,8 @@ class Player():
         self.facing_left = True
         self.health = 10
         self.max_health = 10
+        self.width = 50
+        self.height = 50
         # add collision, gravity, and other code to the player class
 
 
@@ -255,7 +257,7 @@ def secret_horizontal_collision(player, secret_obstacle_list):
 """
 
 coin_anim = coin_animation('Coin.png', 32, 32, 10)
-
+tutorial_initialized = False
 
 # The main function that controls the game
 def main():
@@ -341,6 +343,8 @@ def main():
     # The main game loop
     game_state = 'gameMenu'
 
+
+
     while looping:
 
         if game_state == 'gameMenu':
@@ -415,90 +419,78 @@ def main():
                     exit()
 
         elif game_state == 'tutorial_level':
+            global tutorial_initialized
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit
+                    sys.exit()
             WINDOW.fill('lightblue')
-            player.x = 100
-            player.y = 500
 
-            ob1 = pygame.Rect(100, 100, 100, 50)
-            ob2 = pygame.Rect(300, 100, 50, 50)
-            spike1 = (500, 300, 50, 50)
+            if tutorial_initialized == False:
+                player.x = 100
+                player.y = 500
+                player.vel_x = 0
+                player.vel_y = 0
+                player.on_ground = False
+                player.hitbox.topleft = (player.x, player.y)
 
-            ground = pygame.Rect(0, WINDOW_HEIGHT - 10, WINDOW_WIDTH, 10)
-            obstacle_list = [ob1, ob2, ground]
-            spike_position_list = [spike1]
+                ob1 = pygame.Rect(100, 450, 200, 50)
+                ob2 = pygame.Rect(400, 350, 100, 20)
+                ground = pygame.Rect(0, WINDOW_HEIGHT - 10, WINDOW_WIDTH, 10)
+                obstacle_list = [ob1, ob2, ground]
 
-            for spike in spike_position_list:
-                WINDOW.blit(spike1.image, spike)
+                Spike = spike(50, 50)
+                Spike.hitbox.topleft = (500, 300)
 
-            for ob in obstacle_list:
-                #platform_img = pygame.transform.scale(platform_img, (ob.width, ob.height))
-                #WINDOW.blit(platform_img, ob.topleft)
-                pygame.draw.rect(WINDOW, (129, 129, 129), ob)
+                tutorial_initialized = True
 
-            spike.collisions(player, spike_position_list)
-
-            # Get inputs
-            key = pygame.key.get_pressed()
-
-            # Movement
+            # --- Input ---
+            keys = pygame.key.get_pressed()
             player.vel_x = 0
-
-            if key[pygame.K_LEFT]:
+            if keys[pygame.K_LEFT]:
                 player.vel_x = -player.move_speed
                 player.player_now = player.player_image
                 player.facing_left = True
-            if key[pygame.K_RIGHT]:
+            if keys[pygame.K_RIGHT]:
                 player.vel_x = player.move_speed
                 player.player_now = player.player_flipped_image
                 player.facing_left = False
-            if (key[pygame.K_UP] or key[pygame.K_SPACE]) and player.on_ground == True:
+            if (keys[pygame.K_UP] or keys[pygame.K_SPACE]) and player.on_ground:
                 player.vel_y = player.jump_strength
                 player.on_ground = False
-            if key[pygame.K_SLASH]:
-                colorImage = pygame.Surface(player.player_image.get_size()).convert_alpha()
-                colorImage.fill(player.player_color)
-                player.player_image.blit(colorImage, (player.x, player.y), special_flags=pygame.BLEND_RGBA_MULT)
 
-            WINDOW.blit(player.player_now, (player.x, player.y))
-
-            if player.x < 0:
-                player.x = 0
-
-            if player.x + player.width > WINDOW_WIDTH:
-                player.x = WINDOW_WIDTH - player.width
-
-            if player.y + player.height > WINDOW_HEIGHT:
-                player.y = WINDOW_HEIGHT - player.height
-                player_vel_y = 0
-
+            # --- Horizontal movement and collision ---
+            player.x += player.vel_x
+            player.hitbox.topleft = (player.x, player.y)
             horizontal_collision(player, obstacle_list)
-            for sp in [spike_1, spike_2]:
-                sp.collisions(player, spike_position_list)
 
+            # --- Vertical movement and collision ---
             player.vel_y += player.gravity
+            player.y += int(player.vel_y)
+            player.hitbox.topleft = (player.x, player.y)
 
-            player.hitbox.top = player.y
-            player.hitbox.left = player.x
-
-            # Vertical Collision
             player.on_ground = False
-            for x in obstacle_list:
-                if player.hitbox.colliderect(x):
-                    # Landing on top of a obstacle
-                    if player.vel_y > 0 and player.hitbox.bottom - player.vel_y <= x.top:
-                        player.y = x.top - player.hitbox.height
+            for ob in obstacle_list:
+                if player.hitbox.colliderect(ob):
+                    if player.vel_y > 0 and player.hitbox.bottom - player.vel_y <= ob.top:
+                        player.y = ob.top - player.hitbox.height
                         player.vel_y = 0
                         player.on_ground = True
-                    # Hitting a Obstacle
-                    elif player.vel_y < 0 and player.hitbox.top - player.vel_y >= x.bottom:
-                        player.y = x.bottom
+                    elif player.vel_y < 0 and player.hitbox.top - player.vel_y >= ob.bottom:
+                        player.y = ob.bottom
                         player.vel_y = 0
+            player.hitbox.topleft = (player.x, player.y)
 
-            player.y += int(player.vel_y)
-            player.x += player.vel_x
+            # Spike collisions
+            Spike.collisions(player, [Spike.hitbox])
 
-            player.hitbox.top = player.y
-            player.hitbox.left = player.x
+            WINDOW.blit(background, (0, 0))
+            for ob in obstacle_list:
+                WINDOW.blit(pygame.transform.scale(platform, (ob.width, ob.height)), ob.topleft)
+
+            WINDOW.blit(Spike.image, Spike.hitbox.topleft)
+            WINDOW.blit(player.player_now, (player.x, player.y))
 
 
         elif game_state == 'tutorial':

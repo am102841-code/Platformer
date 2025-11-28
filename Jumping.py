@@ -66,6 +66,8 @@ class Player():
         self.facing_left = True
         self.health = 10
         self.max_health = 10
+        self.width = 50
+        self.height = 50
         # add collision, gravity, and other code to the player class
 
 
@@ -255,7 +257,8 @@ def secret_horizontal_collision(player, secret_obstacle_list):
 """
 
 coin_anim = coin_animation('Coin.png', 32, 32, 10)
-
+tutorial_initialized = False
+exit_button_rect = pygame.Rect(WINDOW_WIDTH - 125, 50, 100, 100)
 
 # The main function that controls the game
 def main():
@@ -341,6 +344,8 @@ def main():
     # The main game loop
     game_state = 'gameMenu'
 
+
+
     while looping:
 
         if game_state == 'gameMenu':
@@ -399,6 +404,7 @@ def main():
 
             WINDOW.blit(txt, (x, y))
 
+
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONUP:
                     mouseClicked = False
@@ -415,25 +421,109 @@ def main():
                     exit()
 
         elif game_state == 'tutorial_level':
+            global tutorial_initialized
+
+            # Exit Button
+            exit_button = button(exit_button_rect.x, exit_button_rect.y, exit_button_rect.width, exit_button_rect.height, 'orange', 'exit', None)
+            exitfontobj = pygame.font.Font(None, 32)
+
+            # Exit Button text
+            ExitText = exitfontobj.render("Exit", True, TEXT_COLOR, None)
+            x = 700
+            y = 75 + 15
+
+            mouseClicked = False
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit
+                    sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_pos = pygame.mouse.get_pos()
+                    if exit_button_rect.collidepoint(mouse_pos):
+                        game_state = 'gameMenu'
+
+
             WINDOW.fill('lightblue')
-            player.x = 100
-            player.y = 500
 
-            ob1 = pygame.Rect(100, 100, 100, 50)
-            ob2 = pygame.Rect(300, 100, 50, 50)
-            spike1 = spike(500, 300, 50, 50)
+            font2 = pygame.font.SysFont(None, 36)
+            text_surface = font2.render("Use arrow keys to move and jump!", True, (155, 155, 155))
 
-            ground = pygame.Rect(0, WINDOW_HEIGHT - 10, WINDOW_WIDTH, 10)
-            obstacle_list = [ob1, ob2, ground]
-            spike_position_list(spike1)
 
-            for spike in spike_position_list:
-                WINDOW.blit(spike1.image, spike)
+            if tutorial_initialized == False:
+                player.x = 100
+                player.y = 500
+                player.vel_x = 0
+                player.vel_y = 0
+                player.on_ground = False
+                player.hitbox.topleft = (player.x, player.y)
 
+                ob1 = pygame.Rect(100, 450-50, 200, 50)
+                ob2 = pygame.Rect(400, 350, 100, 50)
+                ground = pygame.Rect(0, WINDOW_HEIGHT - 10, WINDOW_WIDTH, 10)
+                obstacle_list = [ob1, ob2, ground]
+
+                Spike = spike(50, 50)
+                Spike.hitbox.topleft = (500-50, 300)
+
+                tutorial_initialized = True
+
+
+
+            # --- Input ---
+            keys = pygame.key.get_pressed()
+            player.vel_x = 0
+            if keys[pygame.K_LEFT]:
+                player.vel_x = -player.move_speed
+                player.player_now = player.player_image
+                player.facing_left = True
+            if keys[pygame.K_RIGHT]:
+                player.vel_x = player.move_speed
+                player.player_now = player.player_flipped_image
+                player.facing_left = False
+            if (keys[pygame.K_UP] or keys[pygame.K_SPACE]) and player.on_ground:
+                player.vel_y = player.jump_strength
+                player.on_ground = False
+
+            # --- Horizontal movement and collision ---
+            player.x += player.vel_x
+            player.hitbox.topleft = (player.x, player.y)
+            horizontal_collision(player, obstacle_list)
+
+            # --- Vertical movement and collision ---
+            player.vel_y += player.gravity
+            player.y += int(player.vel_y)
+            player.hitbox.topleft = (player.x, player.y)
+
+            player.on_ground = False
             for ob in obstacle_list:
-                #platform_img = pygame.transform.scale(platform_img, (ob.width, ob.height))
-                #WINDOW.blit(platform_img, ob.topleft)
-                pygame.draw.rect(WINDOW, (129, 129, 129), ob)
+                if player.hitbox.colliderect(ob):
+                    if player.vel_y > 0 and player.hitbox.bottom - player.vel_y <= ob.top:
+                        player.y = ob.top - player.hitbox.height
+                        player.vel_y = 0
+                        player.on_ground = True
+                    elif player.vel_y < 0 and player.hitbox.top - player.vel_y >= ob.bottom:
+                        player.y = ob.bottom
+                        player.vel_y = 0
+            player.hitbox.topleft = (player.x, player.y)
+
+            # Spike collisions
+            Spike.collisions(player, [Spike.hitbox])
+
+            WINDOW.blit(background, (0, 0))
+            WINDOW.blit(text_surface, (200, 150))
+            for ob in obstacle_list:
+                WINDOW.blit(pygame.transform.scale(platform, (ob.width, ob.height)), ob.topleft)
+
+            WINDOW.blit(Spike.image, Spike.hitbox.topleft)
+            exit_button.render_button()
+            WINDOW.blit(ExitText, (x, y))
+            WINDOW.blit(player.player_now, (player.x, player.y))
+
+
+
+
+
+
 
         elif game_state == 'tutorial':
             WINDOW.fill('lightblue')

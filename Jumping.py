@@ -43,6 +43,7 @@ background = pygame.image.load('background.png').convert_alpha()
 background = pygame.transform.scale(background, (800, 600))
 platform = pygame.image.load('PLATFORM.png').convert_alpha()
 
+tutorial_initialized = False
 
 class Player():
     def __init__(self):
@@ -358,7 +359,7 @@ def main():
             '''
             WINDOW.fill('light blue')
             fontObj = pygame.font.Font(None, 64)
-            PlatformerText = fontObj.render("Platformer", True, TEXT_COLOR, None)
+            PlatformerText = fontObj.render("Platformer", True, TEXT_COLOR, None) 
             WINDOW.blit(PlatformerText, (WINDOW.get_width() / 2 - PlatformerText.get_width() / 2,
                                          WINDOW.get_height() / 2 - 45 - PlatformerText.get_height() / 2))
 
@@ -413,6 +414,12 @@ def main():
                     mouseClicked = True
                 mouse_x, mouse_y = pygame.mouse.get_pos()
                 if start_button.hitbox.collidepoint((mouse_x, mouse_y)) and mouseClicked == True:
+                    level = 1
+                    level_counter1.set_number(1)
+                    player.health = player.max_health
+                    player.x = 100
+                    player.y = 500
+                    tutorial_initialized = False
                     game_state = 'gameplay'
                 if atc_button.hitbox.collidepoint((mouse_x, mouse_y)) and mouseClicked == True:
                     game_state = 'creator'
@@ -422,7 +429,8 @@ def main():
                     exit()
 
         elif game_state == 'tutorial_level':
-            global tutorial_initialized
+            if not tutorial_initialized:
+                tutorial_initialized = True
 
             # Exit Button
             exit_button = button(exit_button_rect.x, exit_button_rect.y, exit_button_rect.width, exit_button_rect.height, 'orange', 'exit', None)
@@ -977,10 +985,11 @@ def main():
                     player.y = 500
                     player.player_reset = False
 
-                ob1 = pygame.Rect(200, 425, 100, 50)
+                ob1 = pygame.Rect(150, 500 - 50, 150, 50)
+                ob2 = pygame.Rect(ob1.x + 100, ob1.y - 50, 60, 50) # fill with grey
                 ground = pygame.Rect(0, WINDOW_HEIGHT - 10, WINDOW_WIDTH + 400, 10)
 
-                obstacle_list = [ob1, ground]
+                obstacle_list = [ob1, ob2, ground]
                 spike_position_list = []
                 coin_list = []
 
@@ -1062,6 +1071,10 @@ def main():
                 if level == 5:
                     if rect == ob2 or rect == ob4 or rect == ob5:
                         platform_img.fill((128, 128, 128))
+
+                if level == 6:
+                    if rect == ob2:
+                        platform_img.fill((128, 128, 128))
                 WINDOW.blit(platform_img, rect.topleft)
 
             if level == 2:
@@ -1108,7 +1121,15 @@ def main():
                 player.health = player.max_health
                 player.x = 100
                 player.y = 500
+                obstacle_list = []
+                spike_position_list = []
+                portal_x = 680 - 300
+                portal_y = 100 + 100
+                portal_hitbox.topleft = (portal_x, portal_y)
+
+            if player.health <= 0:
                 level = 1
+
 
             # WINDOW.fill(PLAYER_COLOR, player)
             WINDOW.blit(player.player_now, (player.x, player.y))

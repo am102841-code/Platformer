@@ -296,26 +296,7 @@ def main():
     global WINDOW
     global background
     global secret_obstacle_list
-
-    tutorial_initialized = False
-
-    ### Player Setup ###
-    '''
-    player = pygame.Rect(150, 450, 65, 65)
-    player_image = pygame.image.load('image (3).png').convert_alpha()
-    player_image = pygame.transform.scale(player_image, (65, 65))
-    player_flipped = pygame.transform.flip(player_image, True, False)
-    player_now = player_image
-
-    player_vel_y = 0
-    player_vel_x = 0
-    jump_strength = -21.5
-    gravity = 1
-    jump_speed = 0
-    move_speed = 4
-    on_ground = False
-    player_color = (245, 0, 0)
-    '''
+    global tutorial_initialized
 
     player = Player()
     ### Obstacle Setup ###
@@ -501,7 +482,7 @@ def main():
 
                 ob1 = pygame.Rect(100, 450-50, 200, 50)
                 ob2 = pygame.Rect(400, 350, 100, 50)
-                spikes.clear() 
+                spikes.clear()
                 spikes.append(spike(450, 300))
                 print("Tutorial Spikes", len(spikes))
                 ground = pygame.Rect(0, WINDOW_HEIGHT - 10, WINDOW_WIDTH, 10)

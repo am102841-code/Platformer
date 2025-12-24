@@ -95,7 +95,9 @@ class spike():
     def collisions(self, player):
         if self.hitbox.colliderect(player.hitbox):
             player.health -= 1
-            player.rect.topleft = (100, 500)
+            player.x = 100
+            player.y = 500
+            player.hitbox.topleft = (player.x, player.y)
             player.hitbox.topleft = player.rect.topleft
 
 
@@ -294,6 +296,7 @@ def main():
     global WINDOW
     global background
     global secret_obstacle_list
+    global spikes
 
     tutorial_initialized = False
 
@@ -500,8 +503,10 @@ def main():
 
                 ob1 = pygame.Rect(100, 450-50, 200, 50)
                 ob2 = pygame.Rect(400, 350, 100, 50)
-                spike1 = spike(450, 300) 
-                spikes = [spike1]
+                spikes.clear()
+                spike1 = spike(450, 300)
+                spikes.append(spike1)
+                print("Tutorial Spikes", len(spikes))
                 ground = pygame.Rect(0, WINDOW_HEIGHT - 10, WINDOW_WIDTH, 10)
                 obstacle_list = [ob1, ob2, ground]
 
@@ -545,23 +550,24 @@ def main():
                     elif player.vel_y < 0 and player.hitbox.top - player.vel_y >= ob.bottom:
                         player.y = ob.bottom
                         player.vel_y = 0
-                        
-            for spike in spikes: 
-                spike.update() 
-                spike.collisions(player) 
-                
-            
+
+            for spike in spikes:
+                spike.update()
+                spike.collisions(player)
+
+
             player.hitbox.topleft = (player.x, player.y)
 
 
 
             WINDOW.blit(background, (0, 0))
             WINDOW.blit(text_surface, (200, 150))
+            #pygame.draw.rect((255, 0, 0), spike.hitbox)
             for ob in obstacle_list:
                 WINDOW.blit(pygame.transform.scale(platform, (ob.width, ob.height)), ob.topleft)
-                
-            for spike in spikes: 
-                WINDOW.blit(spike.image, (spike.x, spike.y)) 
+
+            for spike in spikes:
+                WINDOW.blit(spike.image, (spike.x, spike.y))
 
             #WINDOW.blit(Spike.image, Spike.hitbox.topleft)
             exit_button.render_button()

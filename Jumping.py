@@ -2,6 +2,7 @@ import pygame, sys, random
 from pygame.locals import *
 
 pygame.init()
+pygame.mixer.init()
 # IDEAS: powerups ; text ; levels ; make horizontal collisions ; borders ; portal ;
 
 # Score counter
@@ -43,7 +44,13 @@ background = pygame.image.load('background.png').convert_alpha()
 background = pygame.transform.scale(background, (800, 600))
 platform = pygame.image.load('PLATFORM.png').convert_alpha()
 
+# music
+pygame.mixer.music.load("music.mp3")
+pygame.mixer.music.set_volume(1)
+pygame.mixer.music.play(-1)
+
 tutorial_initialized = False
+
 
 class Player():
     def __init__(self):
@@ -73,6 +80,27 @@ class Player():
         # add collision, gravity, and other code to the player class
 
 
+class Spike():
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.width = 50
+        self.height = 50
+        self.image = pygame.image.load("SPIKE.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (self.width, self.height))
+        self.hitbox = pygame.Rect(self.x, self.y, self.width, self.height)
+
+    def update(self):
+        self.hitbox.topleft = (self.x, self.y)
+
+    def collisions(self, player):
+        if self.hitbox.colliderect(player.hitbox):
+            player.health -= 1
+            player.x = 100
+            player.y = 500
+            player.hitbox.topleft = (player.x, player.y)
+
+
 class Enemy():
     def __init__(self):
         self.x = 200
@@ -83,30 +111,30 @@ class Enemy():
         self.player_rect = pygame.Rect(self.x, self.y, 65 / 2, 65 / 2)
         self.facing_left = True
 
-
+"""
 class spike():
-    def __init__(self, width, height):
+    def __init__(self, width, height, x, y):
         self.image = pygame.image.load('SPIKE.png').convert_alpha()
         # self.color = color
         self.width = width
         self.height = height
+        self.x = x
+        self.y = y
         self.image = pygame.transform.scale(self.image, (self.width, self.height))
         # self.hitbox = pygame.Rect(300,300, 10, 25).inflate(50,50)
-        self.hitbox = pygame.Rect(self.width / 2 - self.width / 8, 0, self.width / 4, self.height)
+        self.hitbox = pygame.Rect(self.x, self.y, self.width, self.height)
         # moving hitbox to middle, making it thin and keeping same height
 
-    def collisions(self, player, spike_list):
-        for spike in spike_list:
-            if player.hitbox.colliderect(spike):
-                if player.facing_left:
-                    player.x = player.x + 10
-                else:
-                    player.x = player.x - 10
-                player.health -= 1
-
-                player.y = 450
-                player.x = 250
-
+    def collisions(self, player):
+        if player.hitbox.collderect(self.hitbox): 
+            if player.facing_left:
+                player.x += 10 
+            else: 
+                player.x -= 10 
+            player.health -= 1 
+            player.x = 250 
+            player.y = 450 
+"""
 
 class level_counter():
     def __init__(self, number):
@@ -233,9 +261,6 @@ class button():
         pygame.draw.rect(WINDOW, self.color, self.hitbox, 0, 5)
 
 
-spike_1 = spike(50, 50)
-spike_2 = spike(50, 50)
-spike_list = [spike_1, spike_2]
 
 
 # Horizontal Collisions
@@ -259,7 +284,6 @@ def secret_horizontal_collision(player, secret_obstacle_list):
 """
 
 coin_anim = coin_animation('Coin.png', 32, 32, 10)
-tutorial_initialized = False
 exit_button_rect = pygame.Rect(WINDOW_WIDTH - 125, 50, 100, 100)
 
 # The main function that controls the game
@@ -270,24 +294,8 @@ def main():
     global WINDOW
     global background
     global secret_obstacle_list
-
-    ### Player Setup ###
-    '''
-    player = pygame.Rect(150, 450, 65, 65)
-    player_image = pygame.image.load('image (3).png').convert_alpha()
-    player_image = pygame.transform.scale(player_image, (65, 65))
-    player_flipped = pygame.transform.flip(player_image, True, False)
-    player_now = player_image
-
-    player_vel_y = 0
-    player_vel_x = 0
-    jump_strength = -21.5
-    gravity = 1
-    jump_speed = 0
-    move_speed = 4
-    on_ground = False
-    player_color = (245, 0, 0)
-    '''
+    global tutorial_initialized
+    global spikes
 
     player = Player()
     ### Obstacle Setup ###
@@ -295,11 +303,13 @@ def main():
     ob2X = random.randint(550, 575)
     ob2Y = random.randint(250, 275)
     obstacle_list = []
+    spikes = []
     # level 1 obstacles
+    obstacle_list.clear()
     ob1 = pygame.Rect(290, 395 + 15, 100, 50)
     ground = pygame.Rect(0, WINDOW_HEIGHT - 10, WINDOW_WIDTH, 10)
     obstacle_list = [ob1, ground]
-    spike_position_list = []
+
 
     ### Portal ###
 
@@ -312,29 +322,11 @@ def main():
     portal_surface = pygame.transform.scale(portal_surface, (125, 125))
 
     coin_list = []
-    '''
+
     coin1 = Coin(ob1.left + ob1.width / 2, ob1.top - 25)
-    coin1.anim = coin_anim
     coin1.randomize_pos()
     coin_list.append(coin1)
 
-
-    coin2 = Coin(ob2.left + ob2.width / 2, ob2.top - 25)
-    coin2.anim = coin_anim
-    coin2.randomize_pos()
-    coin_list.append(coin2)
-
-
-    coin3 = Coin(ground.left + ground.width / 2, ground.top - 25)
-    coin3.anim = coin_anim
-    coin3.randomize_pos()
-    coin_list.append(coin3)
-
-    coin4 = Coin(ground.left + ground.width / 2, ground.top - 25)
-    coin4.anim = coin_anim
-    coin4.randomize_pos()
-    coin_list.append(coin4)
-    '''
 
     # spike = pygame.image.load('SPIKE.png').convert_alpha()
     # spike = pygame.transform.scale(spike, (50,50))
@@ -359,7 +351,7 @@ def main():
             '''
             WINDOW.fill('light blue')
             fontObj = pygame.font.Font(None, 64)
-            PlatformerText = fontObj.render("Platformer", True, TEXT_COLOR, None) 
+            PlatformerText = fontObj.render("Platformer", True, TEXT_COLOR, None)
             WINDOW.blit(PlatformerText, (WINDOW.get_width() / 2 - PlatformerText.get_width() / 2,
                                          WINDOW.get_height() / 2 - 45 - PlatformerText.get_height() / 2))
 
@@ -429,8 +421,6 @@ def main():
                     exit()
 
         elif game_state == 'tutorial_level':
-            if not tutorial_initialized:
-                tutorial_initialized = True
 
             # Exit Button
             exit_button = button(exit_button_rect.x, exit_button_rect.y, exit_button_rect.width, exit_button_rect.height, 'orange', 'exit', None)
@@ -469,11 +459,10 @@ def main():
 
                 ob1 = pygame.Rect(100, 450-50, 200, 50)
                 ob2 = pygame.Rect(400, 350, 100, 50)
+                spikes.append(Spike(450, 300))
                 ground = pygame.Rect(0, WINDOW_HEIGHT - 10, WINDOW_WIDTH, 10)
                 obstacle_list = [ob1, ob2, ground]
 
-                Spike = spike(50, 50)
-                Spike.hitbox.topleft = (500-50, 300)
 
                 tutorial_initialized = True
 
@@ -514,21 +503,36 @@ def main():
                     elif player.vel_y < 0 and player.hitbox.top - player.vel_y >= ob.bottom:
                         player.y = ob.bottom
                         player.vel_y = 0
+
+            for spike in spikes:
+                spike.update()
+                spike.collisions(player)
+
             player.hitbox.topleft = (player.x, player.y)
 
-            # Spike collisions
-            Spike.collisions(player, [Spike.hitbox])
 
             WINDOW.blit(background, (0, 0))
             WINDOW.blit(text_surface, (200, 150))
-            for ob in obstacle_list:
-                WINDOW.blit(pygame.transform.scale(platform, (ob.width, ob.height)), ob.topleft)
-
-            WINDOW.blit(Spike.image, Spike.hitbox.topleft)
             exit_button.render_button()
             WINDOW.blit(ExitText, (x, y))
             WINDOW.blit(player.player_now, (player.x, player.y))
+            for ob in obstacle_list:
+                WINDOW.blit(pygame.transform.scale(platform, (ob.width, ob.height)), ob.topleft)
 
+            for spike in spikes:
+                WINDOW.blit(spike.image, (spike.x, spike.y))
+
+            if player.hitbox.left < 0:
+                player.x = 0
+                player.hitbox.left = 0
+
+            # Right boundary
+            if player.hitbox.right > WINDOW_WIDTH:
+                player.x = WINDOW_WIDTH - player.hitbox.width
+                player.hitbox.right = WINDOW_WIDTH
+
+
+            #WINDOW.blit(Spike.image, Spike.hitbox.topleft)
 
 
 
@@ -812,7 +816,7 @@ def main():
                 ground = pygame.Rect(0, WINDOW_HEIGHT - 10, WINDOW_WIDTH + 400, 10)
 
                 coin_list = []
-                spike_position_list = []
+
                 obstacle_list = [ob2, ob3, ob4, ground]
 
                 # replace ALL  coins with this implimentation
@@ -889,13 +893,11 @@ def main():
                 ob2 = pygame.Rect(450, 290, 50, 50)  # make grey
                 # ob3 = pygame.Rect(330, 175, 50, 50) # make grey
                 ob4 = pygame.Rect(550, 175, 160, 50)
+                spikes.clear()
+                spikes.append(Spike(550+75, 150+25-50))
                 ground = pygame.Rect(0, WINDOW_HEIGHT - 10, WINDOW_WIDTH + 400, 10)
 
-                spike1 = (280, 350, 25, 25)
-                spike2 = (550 + 75, 150 + 25 - 50, 50, 50)
-
                 coin_list = []
-                spike_position_list = [spike2]
                 obstacle_list = [ob1, ob2, ob4, ground]
 
                 coin1 = Coin(ob3.left + ob3.width / 2, ob3.top - 25)
@@ -907,6 +909,8 @@ def main():
                 coin2.anim = coin_anim
                 coin2.randomize_pos()
                 coin_list.append(coin2)
+
+
 
             # level 4
             if level == 4 and level_changing == True:
@@ -925,14 +929,13 @@ def main():
                 ob2 = pygame.Rect(500 - 25, 350, 100, 50)
                 ob3 = pygame.Rect(375, 545 - 50, 50, 50)  # fill with grey
                 # ob4 = pygame.Rect(375, 350, 50, 50) # fill with grey
-                ob5 = pygame.Rect(475 + 45 + 75, 200 + 12 + 10, 50, 50)  # fill with grey
+                ob5 = pygame.Rect(475 + 45 + 75 + 25, 200 + 12 + 10, 50, 50)  # fill with grey
                 ob6 = pygame.Rect(ob5.x - 25 - 75 - 25, ob5.y - 35 - 50, 50, 50)  # fill with grey
+                spikes.clear()
+                spikes.append(Spike(ob5.x + 20, ob5.y - ob5.height))
                 ground = pygame.Rect(0, WINDOW_HEIGHT - 10, WINDOW_WIDTH + 400, 10)
 
-                spike1 = (ob5.x + 5, ob5.y - ob5.height, 25, 25)
-
                 coin_list = []
-                spike_position_list = []
                 obstacle_list = [ob1, ob2, ob3, ob5, ob6, ground]
 
                 coin1 = Coin(ground.left + ground.width / 2, ground.top - 25)
@@ -963,13 +966,14 @@ def main():
                 ob3 = pygame.Rect(ob2.x + 40 + 75, ob2.y - 75 + 35, 125, 50)
                 ob4 = pygame.Rect(ob3.x + 100 + 50, ob3.y - 75, 50, 50) # filled with grey
                 ob5 = pygame.Rect(ob4.x + 75 + 75, ob4.y, 50, 50) # filled with grey
+                spikes.clear()
+                spikes.append(Spike(ob3.x + 20, ob3.y - ob3.height))
+                spikes.append(Spike(800-175, 100))
                 ground = pygame.Rect(0, WINDOW_HEIGHT - 10, WINDOW_WIDTH + 400, 10)
 
-                spike1 = (ob3.x + 20, ob3.y - ob3.height, 25, 25)
-                spike2 = (800-150 - 25, 200 - 100, 25, 25)
+
 
                 obstacle_list = [ob1, ob2, ob3, ob4, ob5, ground]
-                spike_position_list = [spike1, spike2]
                 coin_list = []
 
             # level 6
@@ -990,15 +994,10 @@ def main():
                 ground = pygame.Rect(0, WINDOW_HEIGHT - 10, WINDOW_WIDTH + 400, 10)
 
                 obstacle_list = [ob1, ob2, ground]
-                spike_position_list = []
                 coin_list = []
 
             horizontal_collision(player, obstacle_list)
-            for sp in [spike_1, spike_2]:
-                sp.collisions(player, spike_position_list)
-
             player.vel_y += player.gravity
-
             player.hitbox.top = player.y
             player.hitbox.left = player.x
 
@@ -1097,38 +1096,49 @@ def main():
                 portal_x = WINDOW_WIDTH - 75 - 20
                 portal_y = 50
                 portal_hitbox.topleft = (portal_x, portal_y)
+                for spike in spikes:
+                    WINDOW.blit(spike.image, (spike.x, spike.y))
+
+                for spike in spikes:
+                    spike.update()
+                    spike.collisions(player)
 
             if level == 4:
                 portal_x = WINDOW_WIDTH - 75 - 20 - 400
                 portal_y = 50
                 portal_hitbox.topleft = (portal_x, portal_y)
+                for spike in spikes:
+                    WINDOW.blit(spike.image, (spike.x, spike.y))
+
+                for spike in spikes:
+                    spike.update()
+                    spike.collisions(player)
             if level == 5:
                 portal_x = WINDOW_WIDTH - 95
                 portal_y = 50
                 portal_hitbox.topleft = (portal_x, portal_y)
+                for spike in spikes:
+                    WINDOW.blit(spike.image, (spike.x, spike.y))
 
-            for y in spike_position_list:
-                WINDOW.blit(spike_1.image, y)
-
-            for sp in spike_list:
-                sp.collisions(player, spike_position_list)
+                for spike in spikes:
+                    spike.update()
+                    spike.collisions(player)
 
             for coin in coin_list:
                 coin.render_coin()
 
             if player.health <= 0:
                 game_state = 'gameMenu'
+                level = 1
                 player.health = player.max_health
                 player.x = 100
                 player.y = 500
                 obstacle_list = []
-                spike_position_list = []
                 portal_x = 680 - 300
                 portal_y = 100 + 100
                 portal_hitbox.topleft = (portal_x, portal_y)
 
-            if player.health <= 0:
-                level = 1
+
 
 
             # WINDOW.fill(PLAYER_COLOR, player)

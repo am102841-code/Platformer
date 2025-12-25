@@ -111,30 +111,6 @@ class Enemy():
         self.player_rect = pygame.Rect(self.x, self.y, 65 / 2, 65 / 2)
         self.facing_left = True
 
-"""
-class spike():
-    def __init__(self, width, height, x, y):
-        self.image = pygame.image.load('SPIKE.png').convert_alpha()
-        # self.color = color
-        self.width = width
-        self.height = height
-        self.x = x
-        self.y = y
-        self.image = pygame.transform.scale(self.image, (self.width, self.height))
-        # self.hitbox = pygame.Rect(300,300, 10, 25).inflate(50,50)
-        self.hitbox = pygame.Rect(self.x, self.y, self.width, self.height)
-        # moving hitbox to middle, making it thin and keeping same height
-
-    def collisions(self, player):
-        if player.hitbox.collderect(self.hitbox): 
-            if player.facing_left:
-                player.x += 10 
-            else: 
-                player.x -= 10 
-            player.health -= 1 
-            player.x = 250 
-            player.y = 450 
-"""
 
 class level_counter():
     def __init__(self, number):
@@ -243,6 +219,37 @@ class Coin():
 
     def randomize_pos(self):
         self.x = self.x + random.randint(-30, 30)
+
+
+class Coin():
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.width = 15
+        self.height = 15
+        self.collected = False
+        self.hitbox = pygame.Rect(self.x, self.y, self.width, self.height)
+
+    def get_hitbox(self):
+        return self.hitbox
+
+    def render_coin(self, COIN):
+        if self.collected == False:
+            pygame.draw.circle(WINDOW, (255, 215, 0), (int(self.x + self.width/2), int(self.y + self.height/2)), self.width//2)
+            WINDOW.blit(COIN, (self.x, self.y))
+
+    def collide(self, playerHitbox):
+        if self.get_hitbox().colliderect(playerHitbox) and self.collected == False:
+            self.collected = True
+
+    def randomize_pos(self):
+        self.x = self.x + random.randint(-30, 30)
+        self.y = self.y + random.randint(-30, 30)
+        self.hitbox.topleft = (self.x, self.y)
+
+
+
+
 
 
 # starting,
@@ -737,6 +744,17 @@ def main():
                 level_changing = True
                 level_counter1.set_number(int(level))
 
+
+            if level == 1 and level_changing:
+                level_changing = False
+                player.x = 100
+                player.y = 500
+
+                # level 1 obstacles
+                obstacle_list.clear()
+                ob1 = pygame.Rect(290, 395 + 15, 100, 50)
+                ground = pygame.Rect(0, WINDOW_HEIGHT - 10, WINDOW_WIDTH, 10)
+                obstacle_list = [ob1, ground]
 
             # Level 2
             if level == 2 and level_changing:
